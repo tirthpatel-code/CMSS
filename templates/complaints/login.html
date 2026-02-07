@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Complaints Management System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Complaints Management System</h1>
+                <p>Enterprise Complaint Tracking</p>
+            </div>
+            <form id="loginForm" class="auth-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">Username <span class="required">*</span></label>
+                    <input type="text" id="username" name="username" class="form-control" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password <span class="required">*</span></label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+                </div>
+            </form>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+    <script src="/static/js/auth.js"></script>
+</body>
+</html>

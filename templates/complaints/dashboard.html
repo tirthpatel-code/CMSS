@@ -1,0 +1,89 @@
+{% extends 'complaints/base.html' %}
+
+{% block title %}Dashboard - Complaints Management System{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="page-header">
+        <h1>Dashboard</h1>
+        <a href="{% url 'create_complaint' %}" class="btn btn-primary">New Complaint</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+                <h3>{{ stats.total }}</h3>
+                <p>Total Complaints</p>
+            </div>
+        </div>
+        <div class="stat-card stat-pending">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-info">
+                <h3>{{ stats.pending }}</h3>
+                <p>Pending</p>
+            </div>
+        </div>
+        <div class="stat-card stat-progress">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-info">
+                <h3>{{ stats.in_progress }}</h3>
+                <p>In Progress</p>
+            </div>
+        </div>
+        <div class="stat-card stat-resolved">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <h3>{{ stats.resolved }}</h3>
+                <p>Resolved</p>
+            </div>
+        </div>
+        <div class="stat-card stat-urgent">
+            <div class="stat-icon">🚨</div>
+            <div class="stat-info">
+                <h3>{{ stats.urgent }}</h3>
+                <p>Urgent</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-section">
+            <h2>Recent Complaints</h2>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Ticket #</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for complaint in recent_complaints %}
+                        <tr>
+                            <td><strong>{{ complaint.ticket_number }}</strong></td>
+                            <td>{{ complaint.title|truncatewords:10 }}</td>
+                            <td><span class="status-badge status-{{ complaint.status }}">{{ complaint.get_status_display }}</span></td>
+                            <td><span class="priority-badge priority-{{ complaint.priority }}">{{ complaint.get_priority_display }}</span></td>
+                            <td>{{ complaint.created_at|date:"M d, Y" }}</td>
+                            <td><a href="{% url 'complaint_detail' complaint.ticket_number %}" class="btn btn-sm btn-secondary">View</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No complaints found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'complaints_list' %}" class="btn btn-secondary">View All Complaints</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

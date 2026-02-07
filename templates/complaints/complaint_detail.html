@@ -1,0 +1,194 @@
+{% extends 'complaints/base.html' %}
+
+{% block title %}{{ complaint.ticket_number }} - Complaints Management System{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Complaint Details</h1>
+        <a href="{% url 'complaints_list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+
+    <div class="complaint-detail-grid">
+        <div class="complaint-main">
+            <div class="card">
+                <div class="card-header">
+                    <h2>{{ complaint.title }}</h2>
+                    <div class="complaint-meta">
+                        <span class="status-badge status-{{ complaint.status }}">{{ complaint.get_status_display }}</span>
+                        <span class="priority-badge priority-{{ complaint.priority }}">{{ complaint.get_priority_display }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="detail-section">
+                        <h3>Description</h3>
+                        <p>{{ complaint.description|linebreaks }}</p>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-item">
+                            <label>Ticket Number:</label>
+                            <span>{{ complaint.ticket_number }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Category:</label>
+                            <span>{{ complaint.category.name|default:"N/A" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Created By:</label>
+                            <span>{{ complaint.created_by.get_full_name|default:complaint.created_by.username }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Created At:</label>
+                            <span>{{ complaint.created_at|date:"F d, Y H:i" }}</span>
+                        </div>
+                        {% if complaint.location %}
+                        <div class="detail-item">
+                            <label>Location:</label>
+                            <span>{{ complaint.location }}</span>
+                        </div>
+                        {% endif %}
+                        {% if complaint.contact_email %}
+                        <div class="detail-item">
+                            <label>Contact Email:</label>
+                            <span>{{ complaint.contact_email }}</span>
+                        </div>
+                        {% endif %}
+                        {% if is_staff %}
+                        <div class="detail-item">
+                            <label>Assigned To:</label>
+                            <span id="assigned-user">
+                                {% if complaint.assigned_to %}
+                                    {{ complaint.assigned_to.get_full_name|default:complaint.assigned_to.username }}
+                                {% else %}
+                                    Unassigned
+                                {% endif %}
+                            </span>
+                            <select id="assign-select" class="form-control" style="display: none;">
+                                <option value="">Unassigned</option>
+                            </select>
+                            <button id="assign-btn" class="btn btn-sm btn-secondary">Change Assignment</button>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if complaint.resolution_notes %}
+                    <div class="detail-section">
+                        <h3>Resolution Notes</h3>
+                        <p>{{ complaint.resolution_notes|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if complaint.attachment %}
+                    <div class="detail-section">
+                        <h3>Attachment</h3>
+                        <a href="{{ complaint.attachment.url }}" target="_blank" class="btn btn-sm btn-secondary">Download Attachment</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if is_staff %}
+            <div class="card">
+                <div class="card-header">
+                    <h3>Update Status</h3>
+                </div>
+                <div class="card-body">
+                    <form id="statusForm">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="status-select" class="form-control">
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if complaint.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Resolution Notes</label>
+                            <textarea id="resolution-notes" class="form-control" rows="3" placeholder="Add resolution notes...">{{ complaint.resolution_notes }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="complaint-sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Comments</h3>
+                </div>
+                <div class="card-body">
+                    <div id="comments-list">
+                        {% for comment in comments %}
+                        <div class="comment-item {% if comment.is_internal %}comment-internal{% endif %}">
+                            <div class="comment-header">
+                                <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                                {% if comment.is_internal %}
+                                <span class="badge badge-info">Internal</span>
+                                {% endif %}
+                                <span class="comment-time">{{ comment.created_at|date:"M d, Y H:i" }}</span>
+                            </div>
+                            <div class="comment-body">{{ comment.comment|linebreaks }}</div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">No comments yet</p>
+                        {% endfor %}
+                    </div>
+                    <form id="commentForm" class="comment-form">
+                        <div class="form-group">
+                            <textarea id="comment-text" class="form-control" rows="3" placeholder="Add a comment..." required></textarea>
+                        </div>
+                        {% if is_staff %}
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="is-internal"> Internal note (staff only)
+                            </label>
+                        </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary btn-sm">Add Comment</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>History</h3>
+                </div>
+                <div class="card-body">
+                    <div class="history-list">
+                        {% for entry in history %}
+                        <div class="history-item">
+                            <div class="history-time">{{ entry.changed_at|date:"M d, Y H:i" }}</div>
+                            <div class="history-detail">
+                                <strong>
+                                    {% if entry.changed_by %}
+                                        {{ entry.changed_by.get_full_name|default:entry.changed_by.username }}
+                                    {% else %}
+                                        System
+                                    {% endif %}
+                                </strong>
+                                changed <strong>{{ entry.field_name }}</strong>
+                                {% if entry.old_value and entry.new_value %}
+                                from "{{ entry.old_value }}" to "{{ entry.new_value }}"
+                                {% elif entry.new_value %}
+                                to "{{ entry.new_value }}"
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">No history available</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ticketNumber = '{{ complaint.ticket_number }}';
+</script>
+<script src="/static/js/complaint_detail.js"></script>
+{% endblock %}
